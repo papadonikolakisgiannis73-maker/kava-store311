@@ -12,57 +12,60 @@ body{
 font-family:Arial,sans-serif;
 background:linear-gradient(135deg,#eef4ff,#dfeaff);
 min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
+padding:18px;
 color:#111;
 }
 
 .wrap{
-width:95%;
-max-width:480px;
+max-width:520px;
+margin:auto;
 }
 
 .card{
-background:rgba(255,255,255,.65);
-backdrop-filter:blur(16px);
+background:rgba(255,255,255,.72);
+backdrop-filter:blur(18px);
 border-radius:24px;
-padding:28px;
-box-shadow:0 10px 35px rgba(0,0,0,.12);
-text-align:center;
-}
-
-.logo{
-font-size:44px;
-margin-bottom:10px;
+padding:24px;
+box-shadow:0 12px 35px rgba(0,0,0,.12);
 }
 
 h1{
+text-align:center;
 font-size:34px;
-margin-bottom:8px;
+margin-bottom:6px;
 }
 
-p{
-opacity:.7;
-margin-bottom:24px;
+.sub{
+text-align:center;
+opacity:.65;
+margin-bottom:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
 }
 
 button{
-width:100%;
 border:none;
 padding:18px;
 border-radius:16px;
 font-size:18px;
 font-weight:bold;
-background:#0a84ff;
-color:#fff;
-margin-top:10px;
+background:#fff;
+box-shadow:0 6px 15px rgba(0,0,0,.06);
 }
 
-.small{
-background:#fff;
-color:#111;
-border:1px solid #ddd;
+.admin{
+background:#0a84ff;
+color:#fff;
+}
+
+.loading{
+text-align:center;
+padding:40px;
+font-size:20px;
 }
 </style>
 </head>
@@ -72,22 +75,49 @@ border:1px solid #ddd;
 <div class="wrap">
 <div class="card">
 
-<div class="logo">🦒</div>
+<h1>🦒 Store311</h1>
+<div class="sub">Kava Management System</div>
 
-<h1>Store311</h1>
-
-<p>Kava Management System</p>
-
-<button onclick="alert('Employee Mode coming next step')">
-Employee Mode
-</button>
-
-<button class="small" onclick="alert('Admin Mode coming next step')">
-Admin Mode
-</button>
+<div id="app" class="loading">
+Loading...
+</div>
 
 </div>
 </div>
+
+<script>
+
+const API = "https://script.google.com/macros/s/AKfycbzb1K18zxhenlDuGAGvqAj_afoDmYU1nUGElzDbHMzTxEnQ289-BCsM2kDjLpP49ivspg/exec";
+
+loadEmployees();
+
+function loadEmployees(){
+
+fetch(API + "?action=employees")
+.then(r=>r.json())
+.then(data=>{
+
+let h='<div class="grid">';
+
+data.forEach(x=>{
+h+='<button onclick="alert(`Employee: '+x.name+'`)">'+x.name+'</button>';
+});
+
+h+='<button class="admin" onclick="alert(`Admin mode next`)">ADMIN</button>';
+
+h+='</div>';
+
+document.getElementById("app").innerHTML=h;
+
+})
+.catch(err=>{
+document.getElementById("app").innerHTML="Connection Error";
+});
+
+}
+
+</script>
 
 </body>
 </html>
+

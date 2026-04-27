@@ -2,123 +2,369 @@
 <html lang="el">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Store311</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Store311 V4</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-
-body{
-font-family:Arial,sans-serif;
-background:linear-gradient(135deg,#eef4ff,#dfeaff);
-min-height:100vh;
-padding:18px;
-color:#111;
+:root{
+--navy:#14213d;
+--blue:#1f3258;
+--bg:#eef2f7;
+--glass:rgba(255,255,255,.86);
+--line:#dde5ef;
+--text:#111827;
+--muted:#6b7280;
+--shadow:0 10px 28px rgba(0,0,0,.08);
 }
 
-.wrap{
-max-width:520px;
-margin:auto;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+body{
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+background:linear-gradient(160deg,#eef2f7,#f8fafc);
+color:var(--text);
+height:100vh;
+overflow:hidden;
+}
+
+#app{
+height:100vh;
+overflow:auto;
+padding:14px 14px 100px;
 }
 
 .card{
-background:rgba(255,255,255,.72);
-backdrop-filter:blur(18px);
+background:var(--glass);
+border:1px solid var(--line);
 border-radius:24px;
-padding:24px;
-box-shadow:0 12px 35px rgba(0,0,0,.12);
+box-shadow:var(--shadow);
+padding:16px;
+margin-bottom:14px;
 }
 
-h1{
-text-align:center;
-font-size:34px;
-margin-bottom:6px;
-}
-
-.sub{
-text-align:center;
-opacity:.65;
-margin-bottom:20px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(2,1fr);
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
 gap:12px;
 }
 
-button{
-border:none;
-padding:18px;
-border-radius:16px;
-font-size:18px;
-font-weight:bold;
-background:#fff;
-box-shadow:0 6px 15px rgba(0,0,0,.06);
+.title{
+font-size:24px;
+font-weight:800;
+color:var(--navy);
 }
 
-.admin{
-background:#0a84ff;
+.sub{
+font-size:13px;
+color:var(--muted);
+}
+
+.clock{
+font-weight:700;
+color:var(--navy);
+}
+
+.grid2{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-bottom:14px;
+}
+
+.metric{
+padding:14px;
+border-radius:20px;
+background:#fff;
+}
+
+.metric b{
+display:block;
+font-size:30px;
+color:var(--navy);
+margin-top:8px;
+}
+
+.bigBtn,.btn,.tile,.prod,.nav{
+border:none;
+width:100%;
+border-radius:22px;
+font-weight:800;
+}
+
+.bigBtn{
+padding:20px;
+font-size:22px;
+margin-bottom:12px;
+background:linear-gradient(135deg,var(--navy),var(--blue));
 color:#fff;
 }
 
-.loading{
-text-align:center;
-padding:40px;
-font-size:20px;
+.btn{
+padding:18px;
+font-size:18px;
+background:#fff;
+color:var(--navy);
+margin-bottom:12px;
 }
+
+.grid3{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+}
+
+.tile{
+background:#fff;
+padding:22px 10px;
+font-size:18px;
+min-height:95px;
+box-shadow:0 6px 16px rgba(0,0,0,.06);
+}
+
+.prod{
+background:#fff;
+padding:18px;
+margin-bottom:10px;
+text-align:left;
+font-size:18px;
+box-shadow:0 6px 16px rgba(0,0,0,.05);
+}
+
+.bottom{
+position:fixed;
+left:10px;
+right:10px;
+bottom:10px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:8px;
+}
+
+.nav{
+padding:12px;
+background:#fff;
+box-shadow:var(--shadow);
+}
+
+.small{font-size:13px;color:var(--muted);}
+.load{text-align:center;padding:40px;font-size:20px;}
 </style>
 </head>
 
 <body>
 
-<div class="wrap">
-<div class="card">
-
-<h1>🦒 Store311</h1>
-<div class="sub">Kava Management System</div>
-
-<div id="app" class="loading">
-Loading...
-</div>
-
-</div>
-</div>
+<div id="app"><div class="load">Loading...</div></div>
 
 <script>
+const API="https://script.google.com/macros/s/AKfycbzb1K18zxhenlDuGAGvqAj_afoDmYU1nUGElzDbHMzTxEnQ289-BCsM2kDjLpP49ivspg/exec";
 
-const API = "https://script.google.com/macros/s/AKfycbzb1K18zxhenlDuGAGvqAj_afoDmYU1nUGElzDbHMzTxEnQ289-BCsM2kDjLpP49ivspg/exec";
+let employees=[];
+let categories=[];
+let dashboard={};
+let currentUser='';
+let currentCategory='';
+let stack=[];
 
-loadEmployees();
+/* INIT */
+init();
 
-function loadEmployees(){
-
-fetch(API + "?action=employees", {
-method:"GET",
-mode:"cors",
-redirect:"follow"
-})
-.then(r=>r.json())
-.then(data=>{
-let h='<div class="grid">';
-
-data.forEach(x=>{
-h+='<button onclick="alert(`Employee: '+x.name+'`)">'+x.name+'</button>';
-});
-
-h+='<button class="admin" onclick="alert(`Admin mode next`)">ADMIN</button>';
-
-h+='</div>';
-
-document.getElementById("app").innerHTML=h;
-
-})
-.catch(err=>{
-document.getElementById("app").innerHTML="Connection Error";
-});
-
+async function init(){
+try{
+employees = await getJSON("?action=employees");
+categories = await getJSON("?action=categories");
+dashboard = await getJSON("?action=dashboard");
+home();
+setInterval(updateClock,1000);
+}catch(e){
+app('<div class="load">Connection Error</div>');
+}
 }
 
+/* API */
+async function getJSON(q){
+const r = await fetch(API+q,{method:"GET",mode:"cors"});
+return await r.json();
+}
+
+/* NAV */
+function push(fn,arg){
+stack.push({fn:screen,arg:screenArg});
+fn(arg);
+}
+
+let screen=home;
+let screenArg=null;
+
+function back(){
+if(stack.length==0){home();return;}
+const x=stack.pop();
+x.fn(x.arg);
+}
+
+function nav(){
+return `
+<div class="bottom">
+<button class="nav" onclick="home()">🏠</button>
+<button class="nav" onclick="push(employeeScreen)">👥</button>
+<button class="nav" onclick="push(showStock)">📦</button>
+<button class="nav" onclick="adminLogin()">🔐</button>
+</div>`;
+}
+
+/* HOME */
+function home(){
+screen=home; screenArg=null;
+
+app(`
+<div class="card top">
+<div>
+<div class="title">Store311</div>
+<div class="sub">GitHub V4 Fast Mode</div>
+</div>
+<div class="clock" id="clock">--:--</div>
+</div>
+
+<div class="grid2">
+<div class="metric"><div class="small">Low Stock</div><b>${dashboard.lowStock||0}</b></div>
+<div class="metric"><div class="small">Zero Stock</div><b>${dashboard.zeroStock||0}</b></div>
+<div class="metric"><div class="small">Moves</div><b>${dashboard.todayMoves||0}</b></div>
+<div class="metric"><div class="small">Staff</div><b>${employees.length}</b></div>
+</div>
+
+<button class="bigBtn" onclick="push(employeeScreen)">👥 Employee Mode</button>
+<button class="btn" onclick="push(showStock)">📦 Stock</button>
+<button class="btn" onclick="adminLogin()">🔐 Admin</button>
+
+${nav()}
+`);
+updateClock();
+}
+
+/* EMPLOYEES */
+function employeeScreen(){
+screen=employeeScreen;
+
+let h=`
+<div class="card">
+<button class="btn" onclick="back()">⬅ Πίσω</button>
+<div class="title" style="margin:8px 0 12px">Υπάλληλοι</div>
+<div class="grid3">
+`;
+
+employees.forEach(x=>{
+h+=`<button class="tile" onclick="push(showCategories,'${x.name}')">${x.name}</button>`;
+});
+
+h+=`</div></div>${nav()}`;
+app(h);
+}
+
+/* CATEGORIES */
+function showCategories(user){
+screen=showCategories; screenArg=user;
+currentUser=user;
+
+let h=`
+<div class="card">
+<button class="btn" onclick="back()">⬅ Πίσω</button>
+<div class="title" style="margin:8px 0 12px">${user}</div>
+<div class="grid3">
+`;
+
+categories.forEach(c=>{
+h+=`<button class="tile" onclick="push(showProducts,'${c.name}')">${c.name}</button>`;
+});
+
+h+=`</div></div>${nav()}`;
+app(h);
+}
+
+/* PRODUCTS */
+async function showProducts(cat){
+screen=showProducts; screenArg=cat;
+currentCategory=cat;
+
+app('<div class="load">Loading Products...</div>');
+
+let data = await getJSON("?action=products&cat="+encodeURIComponent(cat));
+
+let h=`
+<div class="card">
+<button class="btn" onclick="back()">⬅ Πίσω</button>
+<div class="title" style="margin:8px 0 12px">${cat}</div>
+`;
+
+data.forEach(p=>{
+h+=`
+<button class="prod" onclick="withdrawItem(${p.id},'${p.name}')">
+${p.name}<br>
+<span class="small">Stock: ${p.stock}</span>
+</button>
+`;
+});
+
+h+=`</div>${nav()}`;
+app(h);
+}
+
+/* DEMO WITHDRAW */
+function withdrawItem(id,name){
+alert(currentUser+" • "+name);
+}
+
+/* STOCK */
+async function showStock(){
+screen=showStock;
+
+app('<div class="load">Loading Stock...</div>');
+
+let data = await getJSON("?action=stock");
+
+let h=`
+<div class="card">
+<button class="btn" onclick="back()">⬅ Πίσω</button>
+<div class="title" style="margin:8px 0 12px">Stock</div>
+`;
+
+data.slice(0,30).forEach(p=>{
+h+=`
+<div class="prod">
+${p.name}<br>
+<span class="small">${p.category} • Stock ${p.stock}</span>
+</div>
+`;
+});
+
+h+=`</div>${nav()}`;
+app(h);
+}
+
+/* ADMIN */
+async function adminLogin(){
+let pin = prompt("PIN");
+if(!pin) return;
+
+let r = await getJSON("?action=adminLogin&pin="+encodeURIComponent(pin));
+
+if(r.ok){
+alert("Admin OK");
+}else{
+alert("Λάθος PIN");
+}
+}
+
+/* HELPERS */
+function app(html){
+document.getElementById("app").innerHTML=html;
+}
+
+function updateClock(){
+let d=new Date();
+let t=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+let el=document.getElementById("clock");
+if(el) el.innerText=t;
+}
 </script>
 
 </body>
